@@ -1,54 +1,113 @@
 # Arduino_Lift
+- Description: A control system for a lift of a boutique hotel using the Arduino UNO MCUs. Course Project for MA2012 Introduction To Mechatronics Systems Design CA1.
+- Teammates: Sean, Jack, Tze Nin, Rong Hao
 
-Assessment Description:
+## 🏨 Boutique Hotel Lift Control System (Arduino)
+### 📖 Overview
+This project implements a control system for a 2-level boutique hotel lift using two Arduino UNO microcontrollers communicating via UART.
 
-•	You are going to design a control system for a lift of a boutique hotel using the Arduino UNO MCUs. 
-•	The hotel lobby is located on Level 1 and the guest rooms are located on Level 2 of the building. 
-•	The basic components and circuitry have been provided to you. MCU-1 and MCU-2 are responsible for lobby operation and lift car control respectively.  The two MCUs are communicated via UART. The schematic diagrams are shown in Figure 1 & 2.
-•	The Default Reset State of the lift is at Level 1, with the lift door closed.
-•	The lift lobby operations (MCU-1) are as follows:
-o	The Pushbutton Switch and the Limit Switch are the call buttons located in the Level 1 and Level 2 lift lobbies respectively.
-o	When a call button is pressed, 
-	Turn ON the corresponding LED: LED1 for Level 1, LED2 for Level 2.
-	If the lift car is on a different level, move the lift to the level which the corresponding call button is pressed.
-	If the lift car is on the correct level, 
-•	Send a signal to MCU-2 to open the lift door. Normal lift door operations shall apply.
-•	Blink the corresponding LED two times and then turn it OFF.  
-	the system will only respond to a new call when a previous operation is completed.
-o	The lift car is driven by a DC Motor (DCM) with Encoder. 
-	Level 1  0°; Level 2  720° 
-(Note: choose your own reference as the 0°) 
-	Ascending: DCM rotates counterclockwise; Descending: clockwise
-	Drive the DCM in 3 phases:
-•	First 180°: 30% duty cycle
-•	Next 360°: 90% duty cycle
-•	Last 180°: 30% duty cycle
-	The lift car shall only move when the lift door is closed.
-•	The operations of the lift car (MCU-2) are as follows:
-o	The control panel inside the lift car consists of a keypad and an OLED display
-	The keypad is configured as follows:
-•	Keys ‘1’ and ‘2’ are used to select the desirable level. 
-o	Pressing n when the lift car is on Level n has no effect.
-o	Send a signal to MCU-1 to move the lift car when a valid floor button is pressed.
-•	Keys ‘#’ and ‘*’ are Door Open and Door Close buttons respectively.
-•	Key ‘A’ is the alarm button. When it is pressed, the Piezo Buzzer beeps for ~1s.
-•	The other keys have no function.
-	The OLED display in the lift displays 
-•	The current level (i.e. 1 or 2) when the lift is stationary.
-•	“Going down” when the lift is descending.
-•	“Going up” when the lift is ascending.
-o	The lift door is controlled by a Stepper Motor. 
-	Fully closed  0°; Fully opened  270° (Counterclockwise) 
-(Note: choose your own reference as the 0°) 
-	When the lift car is moving, the lift door shall not open.
-	When the lift car is stationary and the lift door is closed, 
-•	If Key ‘#’ OR the call button in the lobby on that floor is pressed, open the lift door, wait for 5s and then close the lift door.
-	When the lift car is stationary and the lift door is opened,
-•	If Key ‘#’ OR the call button in the lobby on that floor is pressed, the door shall remain open for an additional 5s;
-•	If Key ‘*’ is pressed, the door shall close immediately.
-	If the Opto-Switch is blocked when 
-•	the lift door is open, the door shall remain opened, pressing Key ‘*’ has no effect on the door;
-•	the lift door is closing, the operation shall be interrupted and open immediately.
+- Level 1: Hotel Lobby
 
-•	You are to write a C++ language program to perform these tasks.
-•	Use appropriate assumptions consistent with a real lift controller when you feel that there is ambiguity in any part of the tasks. I would accept variations if you can articulate your assumption(s) reasonably.
+- Level 2: Guest Rooms
+
+- Default System State: Lift at Level 1, doors closed.
+
+The system is split between MCU-1 (handling external lobby calls and main lift car movement) and MCU-2 (handling internal lift car operations, displays, and door control).
+
+### 🏗️ System Architecture & Hardware
+1. MCU-1: Lobby Operations & Lift Motor Control
+Hardware Components:
+
+- Pushbutton Switch (Level 1 Call)
+
+- Limit Switch (Level 2 Call)
+
+- LED 1 (Level 1 Indicator)
+
+- LED 2 (Level 2 Indicator)
+
+- DC Motor with Encoder (Main Lift Drive)
+
+2. MCU-2: Lift Car & Door Control
+Hardware Components:
+
+- 4x4 or 4x3 Keypad (Internal controls)
+
+- OLED Display (Status monitor)
+
+- Stepper Motor (Lift Door Drive)
+
+- Piezo Buzzer (Alarm)
+
+- Opto-Switch (Door safety sensor)
+
+### ⚙️ Operational Logic
+1. Lobby Operations (MCU-1)
+MCU-1 handles external calls and the physical movement of the lift. Note: The system only responds to a new call when a previous operation is fully completed.
+
+- Call Button Pressed:
+
+  - Turns ON the corresponding LED (LED1 for L1, LED2 for L2).
+
+  - If the lift is on a different level: Moves the lift to the called level.
+
+  - If the lift is already on the correct level:
+
+  - Sends a UART signal to MCU-2 to open the doors.
+
+  - Blinks the corresponding LED twice, then turns it OFF.
+
+- Lift Movement (DC Motor):
+
+  - Constraint: The lift car shall only move when the lift door is closed.
+
+  - Positioning: Level 1 = 0°, Level 2 = 720°.
+
+  - Direction: Ascending = Counterclockwise (CCW), Descending = Clockwise (CW).
+
+- Velocity Profile (3 Phases):
+
+  - First 180°: 30% duty cycle
+
+  - Next 360°: 90% duty cycle
+
+  - Last 180°: 30% duty cycle
+
+2. Lift Car Operations (MCU-2)
+MCU-2 handles the internal UI, door mechanisms, and safety features.
+
+- Internal Control Panel (Keypad):
+
+  - 1 / 2: Select desirable level (ignored if already on that level). Sends UART signal to MCU-1 to initiate movement.
+
+  - #: Door Open.
+
+  - *: Door Close.
+
+  - A: Alarm. Beeps Piezo Buzzer for ~1s.
+
+- OLED Display States:
+
+  - 1 or 2: When the lift is stationary.
+
+  - Going up: When ascending.
+
+  - Going down: When descending.
+
+- Lift Door Control (Stepper Motor):
+
+  - Positioning: Fully closed = 0°, Fully opened = 270° (CCW).
+
+  - Constraint: Doors cannot open while the lift car is moving.
+
+  - Stationary & Closed: If Key # or the Lobby Call button is pressed -> Open door, wait 5s, close door.
+
+  - Stationary & Opened: * If Key # or Lobby Call button is pressed -> Add 5s to the open timer.
+
+  - If Key * is pressed -> Close door immediately.
+
+- Safety Interrupt (Opto-Switch):
+
+  - If blocked while the door is open: Door remains open. Key * is ignored.
+
+  - If blocked while the door is closing: Interrupt the closing operation and open the door immediately.
